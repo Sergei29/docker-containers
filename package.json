@@ -1,0 +1,17 @@
+{
+  "name": "create-container-node-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "build": "docker build . -t node-express-app:1",
+    "run": "docker run -p 3000:3000 --rm node-express-app:1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
