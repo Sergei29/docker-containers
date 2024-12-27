@@ -1,17 +1,25 @@
-FROM node:20-alpine
+FROM alpine:3.19
 
+# Install required packages
+RUN apk add --update nodejs npm
+
+# Create a new user and group
+RUN addgroup -S node && adduser -S node -G node
+
+# Change the user to node
 USER node
 
+# Create app directory
 WORKDIR /home/node/app
 
 # Copy package.json and package-lock.json
-COPY --chown=node package*.json ./
+COPY --chown=node:node package*.json ./
 
-# Install dependencies
+# Install app dependencies
 RUN npm ci
 
-# Copy the rest of the files
-# This is done after the npm ci so the package installation steps can be cached
-COPY --chown=node  . .
+# Copy app source code
+COPY --chown=node:node . .
 
-CMD [ "npm", "start" ]
+# Run the app
+CMD ["npm", "start"]
