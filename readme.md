@@ -97,3 +97,49 @@ COPY --chown=node:node . .
 # Run the app
 CMD ["npm", "start"]
 ```
+
+## Multi-stage build
+- 🏗️ What if we want to build the app, for which we may need some packages, however, once the application is built, these packages may not be needed
+- 😜 Multi-stage builds allow you to separate the build environment from the runtime environment. This means that only the necessary files and dependencies are included in the final image, significantly reducing its size.
+- 👍 By isolating different build stages, you can reuse layers and cache intermediate builds. This can speed up subsequent builds since unchanged layers can be reused without recompilation.
+- 💥 Smaller images with fewer dependencies reduce the attack surface for potential vulnerabilities. By excluding development tools and unnecessary packages from the final image, you minimize security risks.
+- 🏠🏠🏠 Multi-stage builds allow you to manage complex builds within a single Dockerfile instead of maintaining multiple Dockerfiles for different environments (e.g., development, testing, production). This simplifies maintenance and improves readability.
+- ✍️ You can perform all build steps in one Dockerfile while ensuring that only the essential components are present in the final image. This leads to a cleaner development workflow and easier debugging of specific build stages.
+- 🏎️ 🏁 By keeping only what is necessary for running the application in the final image, you optimize resource usage on both local and cloud environments, leading to faster deployments and improved performance.
+
+```Dockerfile
+# Build step
+FROM node:20 as node-builder
+RUN mkdir -p /build
+WORKDIR /build
+COPY package*.json ./
+RUN npm ci
+COPY . .
+
+# Production step
+FROM alpine:3.19
+RUN apk add --update nodejs
+RUN addgroup -S node && adduser -S node -G node
+USER node
+RUN mkdir -p /home/node/app
+WORKDIR /home/node/app
+COPY --from=node-builder --chown=node:node /build .
+CMD [ "node", "index.js" ]
+```
+
+- then we build this new image using the large builder image , but the output will be a small alpine result
+```sh
+docker build . -t node-express-app:alpine-3
+...
+docker image ls
+```
+
+```sh
+REPOSITORY                 TAG          IMAGE ID       CREATED             SIZE
+node-express-app           alpine-3     695b3e93db84   19 seconds ago      67.1MB
+node-express-app           alpine-2     56108b38392e   About an hour ago   75.4MB
+node-express-app           alpine       c3a300a89c62   About an hour ago   135MB
+node-express-app           1            b985fd171631   2 hours ago         1.1GB
+```
+
+- here we can see the new build image `node-express-app:alpine-3` to have size of 67.1MB
