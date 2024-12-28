@@ -24,10 +24,13 @@ node-express-app           alpine-2     56108b38392e   26 minutes ago   75.4MB
 node-express-app           alpine       c3a300a89c62   52 minutes ago   135MB
 node-express-app           1            b985fd171631   56 minutes ago   1.1GB
 my-node-app                3            7f998fb440a9   5 days ago       1.09GB
+alpine                     3.19.1       ace17d5d883e   11 months ago    7.73MB
 ```
 
 - `docker rmi 7f998fb440a9` delete image by ID, will delete `my-node-app:3` image
 - `docker rmi --force 7f998fb440a9` delete image if used by other processes
+- `docker scout quickview alpine:3.19.1` scan the image for security summary of vulnerabilities
+- `docker scout cves alpine:3.19.1` scan the image for security vulnerabilities in details
 
 ## To create a basic docker image
 
