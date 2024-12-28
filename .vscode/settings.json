@@ -2,6 +2,8 @@
   "cSpell.words": [
     "addgroup",
     "adduser",
-    "Dockerfiles"
+    "Distroless",
+    "Dockerfiles",
+    "Wolfi"
   ]
 }

@@ -143,3 +143,39 @@ node-express-app           1            b985fd171631   2 hours ago         1.1GB
 ```
 
 - here we can see the new build image `node-express-app:alpine-3` to have size of 67.1MB
+
+## Distroless- an alternative to Linux Alpine.
+
+You may not want to use Alpine, this [blogpost](https://martinheinz.dev/blog/92) sums it up with two points:
+- Alpine made some design choices that have some extremely rare edge cases that can cause failures and be very hard to diagnose. This arises from their choice of replacing the typical glibc with musl. Read the blog post if you want to know more. 
+- Suffice to say, unless you're running Kubernetes at a large scale this shouldn't concern you; lots of people run Alpine and never see issues.
+- Now Alpine isn't the only option!
+
+The four projects to look to here, Wolfi (an open source project), Red Hat's Universal Base Image Micro, Debian's slim variant, and Google's Distroless. We are going to focus on Distroless because it is currently the most popular but feel free to experiment!
+
+"Distroless" is a bit of a lie as it still based on Debian, but to their point, they've stripped away essentially everything except what is 100% necessary to run your containers. This means you need to install everything you need to get running. It means no package manager. It means it is truly as bare bones as it can get.
+
+```Dockerfile
+# build stage
+FROM node:20 AS node-builder
+WORKDIR /build
+COPY package-lock.json package.json ./
+RUN npm ci
+COPY . .
+
+# runtime stage
+FROM gcr.io/distroless/nodejs20
+COPY --from=node-builder --chown=node:node /build /app
+WORKDIR /app
+CMD ["index.js"]
+```
+
+- `docker build . -t node-express-app:distroless`
+
+```sh
+REPOSITORY                 TAG          IMAGE ID       CREATED         SIZE
+node-express-app           distroless   159eeedc8321   4 seconds ago   133MB
+node-express-app           alpine-3     695b3e93db84   15 hours ago    67.1MB
+node-express-app           alpine-2     56108b38392e   16 hours ago    75.4MB
+node-express-app           alpine       c3a300a89c62   16 hours ago    135MB
+```
